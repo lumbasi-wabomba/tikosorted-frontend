@@ -1,0 +1,212 @@
+/* ============================================================
+   TASK TRACKER — DATA-DENSE MANAGEMENT PANEL
+   ============================================================ */
+
+.tasks-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--canvas);
+  font-family: var(--font-body);
+}
+
+/* NAVIGATION HEADER */
+.tasks-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-4);
+  height: 64px;
+  background: var(--panel);
+  color: var(--surface);
+  border-bottom: 2px solid var(--ink);
+}
+
+.tasks-header__left { display: flex; align-items: center; }
+
+.tasks-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--surface);
+}
+
+.tasks-header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--draft);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.1s ease;
+}
+.icon-btn:hover { color: var(--surface); }
+
+.logout-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--surface);
+  background: transparent;
+  border: 2px solid var(--surface);
+  border-radius: 0;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+.logout-btn:hover {
+  background: var(--surface);
+  color: var(--panel);
+}
+
+/* FILTERS TOOLBAR */
+.tasks-toolbar {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border-bottom: 2px solid var(--ink);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 44px;
+  padding: 0 12px;
+  border: 2px solid var(--ink);
+  border-radius: 2px;
+  background: var(--canvas);
+  max-width: 480px;
+  transition: box-shadow 0.1s ease, border-color 0.1s ease;
+}
+.search-box:focus-within {
+  border-color: var(--link);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+.search-icon {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--draft);
+}
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+}
+.search-box input::placeholder { color: var(--draft); }
+
+/* DATA TABLE WRAPPER */
+.tasks-table-wrap {
+  flex: 1;
+  padding: var(--space-4);
+  overflow-x: auto;
+}
+
+/* DATA TABLE */
+.tasks-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: left;
+}
+
+.tasks-table thead {
+  background: var(--panel);
+  color: var(--surface);
+}
+
+.tasks-table th {
+  padding: 14px 16px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--ink);
+  border-right: 1px solid rgba(255,255,255,0.15);
+}
+.tasks-table th:last-child { border-right: none; }
+
+.tasks-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(10,10,10,0.15);
+  border-right: 1px solid rgba(10,10,10,0.15);
+  color: var(--ink);
+  vertical-align: middle;
+}
+.tasks-table td:last-child { border-right: none; }
+
+/* Alternating light/dark slate rows */
+.tasks-table tbody tr:nth-child(even) {
+  background: #F0F2F5; /* light slate */
+}
+.tasks-table tbody tr:nth-child(odd) {
+  background: var(--surface); /* white */
+}
+.tasks-table tbody tr:hover {
+  background: #E2E8F0; /* subtle hover */
+}
+.tasks-table tbody tr {
+  cursor: pointer;
+}
+.tasks-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-empty {
+  text-align: center;
+  padding: var(--space-6) !important;
+  color: var(--draft);
+  font-style: italic;
+}
+
+.table-error {
+  padding: var(--space-4);
+  background: #FEE;
+  border: 2px solid var(--critical);
+  color: var(--critical);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* STATUS INDICATOR (plain text + micro dot) */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  display: inline-block;
+  flex-shrink: 0;
+}

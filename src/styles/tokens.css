@@ -1,0 +1,28 @@
+:root {
+  --ink:        #0A0A0A;
+  --canvas:     #F4F4F6;
+  --surface:    #FFFFFF;
+  --panel:      #1E293B;
+  --primary:    #FF4A00;
+  --link:       #0055FF;
+  --paid:       #00C853;
+  --pending:    #FFAB00;
+  --draft:      #94A3B8;
+  --critical:   #D50000;
+
+  --border:      2px solid var(--ink);
+  --border-thin: 1px solid var(--ink);
+  --radius-0: 0px;
+  --radius-2: 2px;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --space-6: 64px;
+}
