@@ -5,9 +5,9 @@ What the frontend sends and expects back. All calls are made from `src/utils/api
 ## Rules for every endpoint
 
 - Base path is `/api` (in dev, Vite forwards `/api/*` to `VITE_BACKEND_URL`).
-- Request and response bodies are JSON with **camelCase** keys.
+- `GET /api/health` reports the server is up: `{ "status": "ok", "app": "TikoSorted" }`.
+- Request and response bodies are JSON. The frontend (`src/utils/api.js`) maps backend **snake_case** rows to **camelCase** for display, so some responses carry raw DB columns (e.g. `booking_id`, `ticket_id`, `task_id`, `event_date`).
 - **Lists are plain arrays** (not wrapped in `{ events: [...] }`).
-- Every record has an **`id`** field (not `eventId`, `taskId`, `logId`...).
 - Dates are ISO 8601 strings, e.g. `"2026-12-05T18:00:00Z"`.
 - Money is a number in whole KES, e.g. `2500`.
 - Enum values are UPPER_SNAKE_CASE.
@@ -17,22 +17,31 @@ What the frontend sends and expects back. All calls are made from `src/utils/api
 
 ---
 
-## Auth
+## Auth (management staff)
+
+Management staff log in to the admin panel. Revellers never log in. Artists use an emailed link (see Artists).
 
 ### POST `/api/auth/login`
 Request: `{ "email": "a@b.com", "password": "secret" }`
-Response `200`: `{ "token": "jwt..." }`
-Errors: `401` wrong credentials.
+Response `200`: `{ "token": "jwt...", "role": "manager" }`
+`role`: one of `manager | coordinator | finance | logistics | production | marketing | hospitality | compliance | gate_staff`.
+Errors: `401` invalid email or password.
 
 ### POST `/api/auth/logout`  (auth)
-Response `204`.
+Deactivates the current token and ends the session.
+Response `200`: `{ "message": "Logged out" }`
 
+### POST `/api/auth/register`  (manager only)
+Manager creates staff accounts (no public sign-up).
+Request: `{ "name": "...", "staffId": "...", "email": "...", "role": "...", "password": "..." }`
+Response `201`: `{ "userId": "..." }`
+Errors: `400` missing fields or password under 8 characters; `403` if not a manager.
 ---
 
-## Events (public)
+## Events
 
-### GET `/api/events`
-Published events only, soonest first.
+### GET `/api/events`  (public)
+Sellable events only (`PUBLISHED | ON_SALE | SOLD_OUT`), soonest first. Each entry includes its ticket tiers.
 ```json
 [
   {
@@ -41,137 +50,184 @@ Published events only, soonest first.
     "location": "Alchemist Bar, Westlands",
     "eventDate": "2026-12-05T18:00:00Z",
     "eventStage": "ON_SALE",
-    "headliner": "DJ Karaba",
-    "posterUrl": "https://..."
+    "tiers": [
+      { "tierId": "tier_1", "type": "EARLY_BIRD", "price": 1500, "available": 40 }
+    ]
   }
 ]
 ```
-`eventStage`: `DRAFT | PUBLISHED | ON_SALE | SOLD_OUT | ONGOING | COMPLETED | CANCELLED`
-`headliner` and `posterUrl` may be `null`.
+`eventStage`: `PUBLISHED | ON_SALE | SOLD_OUT`. `headliner` and `posterUrl` may be `null`.
 
-### GET `/api/events/:id`
-Same fields as above plus the ticket tiers. Return **every tier the event sells** (the frontend no longer invents missing ones), cheapest first.
-```json
-{
-  "id": "evt_1",
-  "name": "...", "location": "...", "eventDate": "...",
-  "eventStage": "ON_SALE", "headliner": "...", "posterUrl": "...",
-  "tiers": [
-    { "id": "tier_1", "type": "EARLY_BIRD", "name": "Early Bird", "price": 1500, "remaining": 40 }
-  ]
-}
-```
-`type`: `EARLY_BIRD | REGULAR | VIP | VVIP`. `remaining` is how many can still be bought.
+### GET `/api/events/:id`  (public)
+Returns the event row (`SELECT * FROM events`), so keys are snake_case (`event_id`, `event_name`, `event_date`, `event_stage`, ...) until a serializer is added.
+Errors: `404` event not found.
 
+### POST `/api/events`  (coordinator only)
+Create an event and its ticket tiers in one transaction.
+Request: `{ "name": "...", "location": "...", "eventDate": "...", "tiers": [ { "type": "REGULAR", "price": 1000, "total": 500 } ] }`
+`total` seeds both the tier `total` and its available stock.
+Response `201`: `{ "eventId": "..." }`
+Errors: `400` missing fields; `403` not a coordinator.
+
+### PATCH `/api/events/:id`  (coordinator only)
+Update the name, location, and eventDate. Tiers cannot be changed here. Only editable while the event is `draft` or `published`.
+Request: `{ "name": "...", "location": "...", "eventDate": "..." }`
+Response `200`: `{ "message": "Updated" }`
+Errors: `409` event not found or no longer editable.
+
+### POST `/api/events/:id/stage`  (coordinator only)
+Move the event through its life cycle; illegal jumps are rejected.
+Request: `{ "stage": "ON_SALE" }`
+`stage`: `DRAFT | PUBLISHED | ON_SALE | SOLD_OUT | ONGOING | COMPLETED | CANCELLED`.
+Response `200`: `{ "message": "Event is now on_sale" }`
+Errors: `404` event not found; `409` illegal stage jump.
 ---
 
-## Booking and payment (public)
+## Booking and payment (public; no login)
 
-The booking is created on the checkout page, after the user enters their phone number.
+Revellers book without logging in. Flow: checkout (hold stock) → pay (M-Pesa) → webhook marks paid.
 
-### POST `/api/bookings`
-Header: `Idempotency-Key: <uuid>`. Sending the same key twice must return the same booking, not create a second one.
+### POST `/api/bookings/checkout`  (idempotent)
+Header: `Idempotency-Key: <uuid>`. Sending the same key twice returns the same booking instead of a second one.
 ```json
 {
-  "eventId": "evt_1",
+  "tierId": "tier_1",
+  "quantity": 2,
   "phone": "254712345678",
-  "items": [ { "tierId": "tier_1", "quantity": 2 } ]
+  "email": "buyer@example.com"
 }
 ```
-Response `201`: `{ "id": "bkg_1", "status": "HELD" }`
-Seats are held for 5 minutes. Errors: `409` not enough tickets left (message says which tier). Max 8 tickets per order.
-
-### POST `/api/payments/mpesa/stk-push`
-```json
-{ "bookingId": "bkg_1", "phone": "254712345678" }
-```
-Response `202`: `{ "message": "Prompt sent" }`. Any error is shown to the user (the frontend no longer ignores failures).
-
-### GET `/api/bookings/:id/status`
-Polled every 2.5 seconds for up to 5 minutes.
-Response: `{ "id": "bkg_1", "status": "PAID" }`
-`status`: `HELD | PAID | FAILED | EXPIRED | CANCELLED`
-
-### GET `/api/bookings/:id/tickets`
-Only when the booking is `PAID`. Otherwise respond `409` with `{ "message": "Payment not completed yet" }` (the ticket page shows this message).
-```json
-[
-  {
-    "id": "tkt_1",
-    "eventName": "Nairobi Jazz Night",
-    "type": "VIP",
-    "status": "VALID",
-    "qrPayload": "tkt_1"
-  }
-]
-```
-One entry per ticket bought. The QR code is drawn in the browser from `qrPayload`, and that value is what the gate scanner sends back as `ticketId`.
-`status`: `VALID | USED`
-
----
-
-## Artist registration (public)
-
-Submitted in one request, so either all people are saved or none are.
-
-### POST `/api/artists`
+`quantity` must be 1–10. Seats are held for the `HOLD_TTL_SECONDS` window (default 600s / 10 min; the frontend polls for up to 5 min).
+Response `201`: the booking row, e.g.
 ```json
 {
-  "eventId": "evt_1",
-  "artists": [
-    { "name": "DJ Karaba", "email": "dj@example.com", "preferences": "Stage plot, 2 monitors" }
+  "booking_id": "bkg_1",
+  "event_id": "evt_1",
+  "tier_id": "tier_1",
+  "no_of_tickets": 2,
+  "amount": 3000,
+  "booker_phone": "254712345678",
+  "booker_email": "buyer@example.com",
+  "status": "held",
+  "hold_expires_at": "2026-12-05T18:05:00Z"
+}
+```
+Errors: `400` bad input (tierId, quantity 1–10, phone, email required); `409` not enough tickets available.
+
+### GET `/api/bookings/:id/status`  (public)
+Polling endpoint: "is my payment done yet?" Polled every 2.5 seconds for up to 5 minutes.
+Response: `{ "booking_id": "bkg_1", "status": "HELD", "hold_expires_at": "..." }`
+`status`: `HELD | PAID | EXPIRED | CANCELLED` (backend stores lowercase, e.g. `held`).
+Errors: `404` booking not found.
+
+### GET `/api/bookings/:id/tickets`  (public)
+E-tickets, returned once the booking is paid.
+Response: `[ { "ticket_id": "tkt_1", "qr_payload": "tkt_1", "status": "paid" } ]`
+Includes only tickets with status `paid | verified | used`. The QR is drawn from `qr_payload`, and that value is what the gate scanner sends back as `ticketId`.
+
+### POST `/api/payments/mpesa/stk-push`  (public)
+Request: `{ "bookingId": "bkg_1", "phone": "254712345678" }`
+Currently returns `501` "Not implemented yet" (Daraja STK-push integration is a TODO).
+
+### POST `/api/payments/mpesa/callback`  (public webhook)
+Safaricom calls this URL after the customer pays or cancels (must be public HTTPS — ngrok in dev).
+Response: `{ "ResultCode": 0, "ResultDesc": "Accepted" }`
+Only this server-to-server webhook (or provider polling) may mark a booking paid — the browser is never trusted to say "I paid".
+---
+
+## Artists
+
+Staff add artists; artists click an emailed link to get a token and manage their entourage.
+
+### GET `/api/artists?eventId=...`  (coordinator / hospitality)
+All artists for an event, each with its entourage members.
+Response `200`: array of
+```json
+{
+  "id": "art_1",
+  "name": "DJ Karaba",
+  "email": "dj@example.com",
+  "isVerified": true,
+  "preferences": "",
+  "entourage": [
+    { "id": "...", "artistId": "art_1", "name": "Jane", "email": "jane@example.com", "isVerified": false }
   ]
 }
 ```
-Response `201`. The backend emails each artist a link to register their entourage.
+Errors: `400` eventId is required.
 
-### POST `/api/artists/:artistId/entourage`
-```json
-{ "members": [ { "name": "Jane Doe", "email": "jane@example.com" } ] }
-```
-Response `201`.
+### POST `/api/artists`  (coordinator only)
+Add one artist to an event and email them a verification link.
+Request: `{ "eventId": "...", "name": "...", "email": "..." }`
+Response `201`: `{ "id": "art_1", "name": "...", "email": "...", "isVerified": false }`
+Errors: `409` artist already added; `404` event not found; `400` invalid name or email.
 
+### POST `/api/artists/verify/:token`  (public)
+Opened from the emailed link. Marks the artist verified and returns an artist JWT for later calls.
+Response `200`: `{ "token": "jwt...", "artist": { "id": "art_1", "eventId": "evt_1", "name": "..." } }`
+Errors: `404` link not valid.
+
+### PUT `/api/artists/profile`  (artist token)
+Save profile preferences after verification. Send `Authorization: Bearer <artist-token>`.
+Request: `{ "preferences": "Stage plot, 2 monitors" }`
+Response `200`: `{ "message": "Profile saved" }`
+Errors: `400` preferences required; `401` token not valid / expired.
+
+### POST `/api/artists/entourage`  (artist token)
+Add entourage members (bandmates, dancers). All or nothing — every member is validated before any are saved.
+Request: `{ "members": [ { "name": "Jane Doe", "email": "jane@example.com" } ] }`
+Response `201`: array of saved members `[ { "id": "...", "name": "...", "email": "..." } ]`
+Errors: `400` empty list, a member missing a name, or an invalid email.
 ---
 
-## Gate scanner (login required)
+## Gate scanner (auth: gate_staff / logistics)
 
-These are now behind the login. The `/checkin/:eventId` page is a protected route.
+On-site scanning. Gate devices keep a local copy of tickets and sync later, so they can work offline.
 
-### GET `/api/checkin/events/:eventId/manifest`
-Downloaded so the scanner keeps working offline.
-```json
-{ "tickets": [ { "id": "tkt_1", "type": "VIP", "status": "VALID" } ] }
-```
+### GET `/api/checkin/manifest/:eventId`
+Gate device downloads all paid/verified tickets for an event to store locally.
+Response `200`: array of `{ "ticket_id": "tkt_1", "qr_payload": "tkt_1", "status": "paid", "tier_id": "tier_1" }`
 
 ### POST `/api/checkin/scan`
+Online scan. Body carries either the raw QR payload or the bare ticket id:
 ```json
-{ "ticketId": "tkt_1", "deviceId": "SCAN-4F2A" }
+{ "payload": "tkt_1" }
 ```
-Always `200` for a real scan result, so the frontend can show your message:
-```json
-{ "valid": true,  "ticketType": "VIP", "message": "Entry granted" }
-{ "valid": false, "ticketType": null,  "message": "INVALID TICKET: ALREADY VERIFIED" }
-```
-Use non-2xx only for real errors (server down, not logged in). The backend must mark the ticket `USED` when `valid` is true.
+or `{ "ticketId": "tkt_1" }`.
+Response `200`: `{ "valid": true }` and the ticket is marked `USED` (`used_at = now()`).
+Errors: `400` invalid/unknown payload; `409` ticket already used or not valid.
 
 ### POST `/api/checkin/sync`
-Scans made while the device had no internet.
-```json
-{
-  "eventId": "evt_1",
-  "deviceId": "SCAN-4F2A",
-  "scans": [ { "ticketId": "tkt_1", "scannedAt": "2026-12-05T20:14:03Z" } ]
-}
-```
-Response `200`. Mark each ticket `USED` using `scannedAt` as the time (skip ones already used).
-`deviceId` is generated once per device in the browser (e.g. `SCAN-4F2A`).
+Upload offline scans in a batch. First scan wins; duplicates are flagged, not lost.
+Request: `{ "deviceId": "SCAN-4F2A", "scans": [ { "ticketId": "tkt_1", "scannedAt": "2026-12-05T20:14:03Z" } ] }`
+Response `200`: `{ "results": [ { "ticketId": "tkt_1", "conflict": false } ] }`
+`deviceId` is generated once per device in the browser (e.g. `SCAN-4F2A`). `conflict: true` means that ticket was already used.
 
 ---
 
-## Admin (login required)
+## Tasks (staff tasks per event; auth required)
 
-### GET `/api/admin/dashboard`  (NEW)
-The frontend used to download all events, tasks and logs and add them up itself. Totals now come from the backend.
+### GET `/api/tasks?eventId=...`
+`eventId` is optional. Returns task rows ordered by deadline (snake_case columns: `task_id`, `title`, `assigned_to`, `deadline`, `status`, ...).
+
+### POST `/api/tasks`
+Request: `{ "eventId": "...", "title": "...", "assignedTo": "...", "deadline": "..." }`
+Response `201`: the created task row with backend-generated `task_id`.
+Errors: `400` eventId and title required.
+
+### PATCH `/api/tasks/:id`
+Editable fields: `status` (`todo | in_progress | done`), `title`, `deadline`, `resource`. Only the keys sent are changed; the frontend maps UI `TODO/IN_PROGRESS/COMPLETED` to `todo/in_progress/done`.
+Response `200`: `{ "message": "Updated" }`
+Errors: `404` task not found.
+
+### DELETE `/api/tasks/:id`
+Response `204`.
+---
+
+## Admin (auth required; role-based)
+
+### GET `/api/admin/dashboard`  (finance / coordinator / manager)
+Totals are computed by the backend.
 ```json
 {
   "kpis": {
@@ -185,17 +241,19 @@ The frontend used to download all events, tasks and logs and add them up itself.
   "recentActivity": [ { "id": "log_1", "timestamp": "...", "actorName": "Jane", "action": "EVENT_PUBLISHED" } ]
 }
 ```
-`liveEvents` = stage `PUBLISHED`, `ON_SALE` or `ONGOING`. `upcomingEvents` = next 3 by date. `recentActivity` = latest 5 logs.
+`liveEvents` = stage `PUBLISHED`, `ON_SALE` or `ONGOING`. `upcomingEvents` = next 5 by date. `recentActivity` = latest 5 audit logs.
+
+### GET `/api/admin/events`
+All events including drafts, for the report dropdown: `[ { "id": "evt_1", "name": "..." } ]`.
 
 ### GET `/api/admin/tasks`
-Moved from `/api/tasks` because it is admin data.
 ```json
 [
   {
     "id": "task_1",
     "title": "Book sound system",
     "teamOnboard": "Production",
-    "resources": "Budget: KES 80,000",
+    "resources": null,
     "dueDate": "2026-11-20T00:00:00Z",
     "status": "IN_PROGRESS"
   }
@@ -203,8 +261,8 @@ Moved from `/api/tasks` because it is admin data.
 ```
 `status`: `TODO | IN_PROGRESS | BLOCKED | COMPLETED`. `teamOnboard`, `resources`, `dueDate` may be `null`.
 
-### GET `/api/admin/audit-logs?limit=200`
-Newest first.
+### GET `/api/admin/audit-logs?limit=200`  (compliance)
+Newest first. `limit` is capped at 500 (default 200).
 ```json
 [
   {
@@ -219,13 +277,12 @@ Newest first.
 ```
 `actorName` is `"SYSTEM"` for automated actions. `resource` and `metadata` may be `null`.
 
-### GET `/api/admin/events`
-All events including drafts, for the report dropdown: `[ { "id": "evt_1", "name": "..." } ]`
-
-### GET `/api/admin/events/:id/metrics`
+### GET `/api/admin/events/:id/metrics`  (finance / coordinator / manager)
 ```json
 {
-  "netRevenue": 450000.5,
+  "netRevenue": 450000,
+  "revenue": 500000,
+  "totalCosts": 50000,
   "tickets": {
     "total": 320,
     "byTier": { "EARLY_BIRD": 100, "REGULAR": 150, "VIP": 60, "VVIP": 10 }
@@ -233,26 +290,28 @@ All events including drafts, for the report dropdown: `[ { "id": "evt_1", "name"
 }
 ```
 
-### GET `/api/admin/events/:id/costs`
-One row per cost entry. The frontend adds them up per category.
+### GET `/api/admin/events/:id/costs`  (finance / coordinator / manager)
+One row per cost entry; the frontend adds them up per category.
 ```json
-[ { "classification": "MARKETING", "amount": 50000 } ]
+[ { "id": "...", "name": "...", "classification": "MARKETING", "amount": 50000, "costDate": "..." } ]
 ```
-`classification`: `MARKETING | ARTISTS | SOUND_EQUIP | SALES | ON_GROUND`
+`classification`: `MARKETING | ARTISTS | SOUND_EQUIP | SALES | ON_GROUND` (the POST below accepts the snake_case input, e.g. `marketing`, `artist`, `sound_equipment`, `on_ground`).
 
+### POST `/api/admin/events/:id/costs`  (finance only)
+Request: `{ "name": "...", "classification": "MARKETING", "amount": 50000, "costDate": "..." }`
+Response `201`: the created cost row.
 ---
 
 ## What changed from the old frontend
 
-| Old | New |
+| Old | New (current backend) |
 | --- | --- |
-| `POST /api/bookings/checkout` | `POST /api/bookings` |
-| Booking sent `bookerPhone: "+254..."` and a made-up `bookerEmail` | `phone: "254..."` only, no email |
-| `items: [{ tierId, qty }]` | `items: [{ tierId, quantity }]` |
-| `GET /api/tasks` | `GET /api/admin/tasks` |
-| `GET /api/checkin/manifest/:eventId` | `GET /api/checkin/events/:eventId/manifest` |
-| Artists/entourage sent one request per person | One request with an array |
-| Dashboard totals worked out in the browser | `GET /api/admin/dashboard` |
-| `eventId`/`tierId`/`logId`/`taskId` and `LogTimestamp` | `id` and `timestamp` everywhere |
-| Lists sometimes wrapped (`{ events: [] }`) | Always plain arrays |
-| Scan result read from `status` or `valid` or an HTTP error | `{ valid, ticketType, message }` with `200` |
+| `POST /api/auth/login` returned `{ token }` | Returns `{ token, role }` |
+| `POST /api/auth/logout` → `204` | `200` `{ "message": "Logged out" }` |
+| `POST /api/bookings` `{ eventId, items:[{ tierId, qty }] }` | `POST /api/bookings/checkout` `{ tierId, quantity, phone, email }` + `Idempotency-Key` header, quantity 1–10 |
+| `GET /api/tasks` | `GET /api/admin/tasks` (plus full CRUD under `/api/tasks`) |
+| `GET /api/checkin/events/:eventId/manifest` | `GET /api/checkin/manifest/:eventId` |
+| Scan body `{ ticketId, deviceId }` → `{ valid, ticketType, message }` | `{ payload }` or `{ ticketId }` → `{ valid: true }` / `409` |
+| `POST /api/artists` with `{ artists: [ ... ] }` | `POST /api/artists` one artist `{ eventId, name, email }` |
+| `POST /api/artists/:artistId/entourage` | `POST /api/artists/entourage` `{ members: [ ... ] }` |
+| `POST /api/payments/mpesa/stk-push` → `202 { message: "Prompt sent" }` | Currently `501` not implemented; `POST /api/payments/mpesa/callback` webhook marks the booking paid |
