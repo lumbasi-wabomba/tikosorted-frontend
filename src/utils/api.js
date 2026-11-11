@@ -199,6 +199,8 @@ export async function getManifest(eventId) {
     tickets: rows.map((row) => ({
       id: row.ticket_id,
       type: upper(row.type),
+      price: row.price,
+      eventName: row.event_name,
       status: row.status === 'used' ? 'USED' : 'VALID',
     })),
   }
@@ -208,6 +210,11 @@ export async function getManifest(eventId) {
 export function scanTicket(eventId, code) {
   const body = code.includes('.') ? { eventId, payload: code } : { eventId, ticketId: code }
   return request('/checkin/scan', { method: 'POST', body })
+}
+
+export function validateTicket(eventId, code) {
+  const body = code.includes('.') ? { eventId, payload: code } : { eventId, ticketId: code }
+  return request('/checkin/validate', { method: 'POST', body })
 }
 
 // Scans made while offline: [{ ticketId, scannedAt }]
@@ -226,10 +233,10 @@ export function getTasks() {
 }
 
 // Create a new task for a staff member. The backend generates the id. Returns { id }.
-export async function createTask({ eventId, title, assignedTo, deadline }) {
+export async function createTask({ eventId, title, assignedTo, deadline, resource }) {
   const task = await request('/tasks', {
     method: 'POST',
-    body: { eventId, title, assignedTo, deadline },
+    body: { eventId, title, assignedTo, deadline, resource },
   })
   return { id: task.task_id }
 }
@@ -267,6 +274,10 @@ export function getAuditLogs(limit = 200) {
 
 export function getAdminEvents() {
   return request('/admin/events')
+}
+
+export function getManagementTeam() {
+  return request('/admin/management-team')
 }
 
 export function getEventMetrics(eventId) {

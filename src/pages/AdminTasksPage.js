@@ -54,6 +54,7 @@ export default function TasksPage() {
             aria-label="Search for Task"
           />
         </div>
+        <button className="add-btn" onClick={() => navigate('/admin/taskcreate')}>ADD TASK</button>
       </div>
 
       <div className="tasks-table-wrap">

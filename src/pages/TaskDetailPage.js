@@ -6,11 +6,11 @@ import Spinner from '../components/Spinner'
 import Button from '../components/Button'
 import Badge from '../components/Badge'
 
-const STATUSES = ['TODO', 'IN_PROGRESS', 'BLOCKED', 'COMPLETED']
+const STATUSES = ['TODO', 'IN_PROGRESS', 'COMPLETED']
 const STATUS_KIND = { TODO: 'draft', IN_PROGRESS: 'held', BLOCKED: 'critical', COMPLETED: 'paid' }
 
 export default function TaskDetailPage() {
-  const { taskId } = useParams()
+  const { id: taskId } = useParams()
   const navigate = useNavigate()
   const { data: task, isLoading, isError, error } = useTaskDetail(taskId)
   const updateMutation = useUpdateTask(taskId)

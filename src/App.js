@@ -14,6 +14,8 @@ import AuditPage from './pages/AdminAuditPage'
 import TaskCreatePage from './pages/TaskCreatePage'
 import TaskDetailPage from './pages/TaskDetailPage'
 import TaskEditPage from './pages/TaskEditPage'
+import EventCreatePage from './pages/EventCreatePage'
+import EventEditPage from './pages/EventEditPage'
 
 function RegisterSuccess() {
   return (
@@ -46,9 +48,11 @@ export default function App() {
         <Route path="/admin" element={<DashboardPage />} />
         <Route path="/admin/tasks" element={<TasksPage />} />
         <Route path="/admin/events/:eventId" element={<ReportPage />} />
+        <Route path="/admin/events/create" element={<EventCreatePage />} />
         <Route path="/admin/taskcreate" element={<TaskCreatePage />} />
         <Route path="/admin/tasks/:id" element={<TaskDetailPage />} />
         <Route path="/admin/tasks/:id/edit" element={<TaskEditPage />} />
+        <Route path="/admin/events/edit/:eventId" element={<EventEditPage />} />
         <Route path="/admin/report" element={<ReportPage />} />
         <Route path="/admin/audit" element={<AuditPage />} />
       </Route>

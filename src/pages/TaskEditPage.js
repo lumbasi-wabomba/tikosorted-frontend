@@ -10,7 +10,7 @@ import Input from '../components/Input'
 const STATUSES = ['TODO', 'IN_PROGRESS', 'COMPLETED']
 
 export default function TaskEditPage() {
-  const { taskId } = useParams()
+  const { id: taskId } = useParams()
   const navigate = useNavigate()
   const { data: task, isLoading, isError, error } = useTaskDetail(taskId)
   const updateMutation = useUpdateTask(taskId)

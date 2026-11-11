@@ -36,7 +36,6 @@
 .tasks-header__right {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
 }
 
 .icon-btn {
@@ -53,7 +52,8 @@
 }
 .icon-btn:hover { color: var(--surface); }
 
-.logout-btn {
+.logout-btn,
+.add-btn {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -67,13 +67,18 @@
   cursor: pointer;
   transition: background 0.1s ease, color 0.1s ease;
 }
-.logout-btn:hover {
+.logout-btn:hover,
+.add-btn:hover {
   background: var(--surface);
   color: var(--panel);
 }
 
 /* FILTERS TOOLBAR */
 .tasks-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   background: var(--surface);
   border-bottom: 2px solid var(--ink);
@@ -89,6 +94,7 @@
   border-radius: 2px;
   background: var(--canvas);
   max-width: 480px;
+  width: 100%;
   transition: box-shadow 0.1s ease, border-color 0.1s ease;
 }
 .search-box:focus-within {
@@ -110,6 +116,16 @@
   color: var(--ink);
 }
 .search-box input::placeholder { color: var(--draft); }
+
+.tasks-toolbar .add-btn {
+  flex-shrink: 0;
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.tasks-toolbar .add-btn:hover {
+  background: var(--ink);
+  color: var(--surface);
+}
 
 /* DATA TABLE WRAPPER */
 .tasks-table-wrap {

@@ -8,6 +8,19 @@
   padding: var(--space-5) var(--space-4);
 }
 
+.form-page--task-create {
+  align-items: center;
+  background: var(--canvas);
+}
+
+.form-page--task-create .form-card {
+  max-width: 560px;
+}
+
+.form-page--task-create .form-header {
+  background: var(--panel);
+}
+
 .form-card {
   width: 100%;
   max-width: 680px;

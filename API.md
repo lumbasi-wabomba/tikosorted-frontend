@@ -211,7 +211,7 @@ Response `200`: `{ "results": [ { "ticketId": "tkt_1", "conflict": false } ] }`
 `eventId` is optional. Returns task rows ordered by deadline (snake_case columns: `task_id`, `title`, `assigned_to`, `deadline`, `status`, ...).
 
 ### POST `/api/tasks`
-Request: `{ "eventId": "...", "title": "...", "assignedTo": "...", "deadline": "..." }`
+Request: `{ "eventId": "...", "title": "...", "assignedTo": "...", "deadline": "...", "resource": "..." }`
 Response `201`: the created task row with backend-generated `task_id`.
 Errors: `400` eventId and title required.
 
@@ -242,6 +242,10 @@ Totals are computed by the backend.
 }
 ```
 `liveEvents` = stage `PUBLISHED`, `ON_SALE` or `ONGOING`. `upcomingEvents` = next 5 by date. `recentActivity` = latest 5 audit logs.
+
+### GET `/api/admin/management-team`
+Returns the management team members available for task assignment:
+`[ { "id": "...", "name": "..." } ]`.
 
 ### GET `/api/admin/events`
 All events including drafts, for the report dropdown: `[ { "id": "evt_1", "name": "..." } ]`.

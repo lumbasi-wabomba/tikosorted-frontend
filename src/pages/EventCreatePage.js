@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useEventCreate } from '../hooks/useEventCreate'
+import { useEventCreate } from '../hooks/Events'
 import Button from '../components/Button'
 import Input from '../components/Input'
 
@@ -41,10 +41,9 @@ export default function EventCreatePage() {
         headliner: form.headliner.trim() || null,
         posterUrl: form.posterUrl.trim() || null,
         tiers: validTiers.map(t => ({
-          type: t.type,
-          name: t.name,
+          type: t.type.toLowerCase(),
           price: Number(t.price),
-          quantity: Number(t.quantity),
+          total: Number(t.quantity),
         })),
       })
       navigate(`/event/${created.eventId || created.id}`)

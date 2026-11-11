@@ -22,6 +22,7 @@ export default function DashboardPage() {
           <Link to="/admin/tasks">TASKS</Link>
           <Link to="/admin/report">REPORTS</Link>
           <Link to="/admin/audit">AUDIT</Link>
+          <Link to="/admin/events/create">CREATE EVENT</Link>
           <button onClick={logout} className="dash-logout">LOGOUT</button>
         </nav>
       </header>
@@ -90,6 +91,7 @@ export default function DashboardPage() {
                         <div className="event-list__right">
                           <span className="event-list__stage">{event.eventStage.replace('_', ' ')}</span>
                           <Link to={`/checkin/${event.id}`} className="dash-card__link">SCAN →</Link>
+                          <Link to={`/admin/events/edit/${event.id}`} className="dash-card__link">EDIT →</Link>
                         </div>
                       </li>
                     ))}

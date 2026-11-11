@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { getManifest, scanTicket, syncScans } from '../utils/api'
+import { getManifest, scanTicket, syncScans, validateTicket } from '../utils/api'
 
 // Each event gets its own saved manifest and offline queue
 const manifestKey = (eventId) => `tiko_manifest_${eventId}`
@@ -9,10 +9,6 @@ const DEVICE_KEY = 'tiko_device_id'
 // A scanned QR code looks like "ticketId.eventId.signature".
 // A ticket id typed by hand has no dots. Either way the first part is the ticket id.
 const ticketIdFromCode = (code) => code.split('.')[0]
-
-function grantedMessage(type) {
-  return `ENTRY GRANTED: ${type ? type + ' ' : ''}TICKET USED`
-}
 
 function readSaved(key, fallback) {
   try {
@@ -40,6 +36,7 @@ export function useScanner(eventId) {
   const [pending, setPending] = useState(() => readSaved(queueKey(eventId), []).length)
   const [scanning, setScanning] = useState(false)
   const [feedback, setFeedback] = useState(null) // { kind: 'valid' | 'invalid', message }
+  const [pendingTicket, setPendingTicket] = useState(null)
 
   // Keep `online` up to date
   useEffect(() => {
@@ -82,7 +79,7 @@ export function useScanner(eventId) {
     })
   }
 
-  // No internet: check against the saved list and queue the scan for later
+  // No internet: validate against the saved list and wait for confirmation.
   function validateOffline(code) {
     const ticketId = ticketIdFromCode(code)
     const ticket = manifest?.tickets.find((t) => t.id === ticketId)
@@ -96,24 +93,17 @@ export function useScanner(eventId) {
       return
     }
 
-    const queue = readSaved(queueKey(eventId), [])
-    queue.push({ ticketId, scannedAt: new Date().toISOString() })
-    localStorage.setItem(queueKey(eventId), JSON.stringify(queue))
-    setPending(queue.length)
-
-    markUsed(ticketId)
-    setFeedback({ kind: 'valid', message: grantedMessage(ticket.type) })
+    setPendingTicket({ code, ticket })
+    setFeedback({ kind: 'valid', message: 'TICKET VALID — CONFIRM ENTRY' })
   }
 
-  // Internet available: ask the backend
+  // Internet available: validate without consuming the ticket.
   async function validateOnline(code) {
     const ticketId = ticketIdFromCode(code)
     try {
-      // The backend answers with an error message when the ticket is not valid
-      await scanTicket(eventId, code)
-      const ticket = manifest?.tickets.find((t) => t.id === ticketId)
-      markUsed(ticketId)
-      setFeedback({ kind: 'valid', message: grantedMessage(ticket?.type) })
+      const result = await validateTicket(eventId, code)
+      setPendingTicket({ code, ticket: result.ticket })
+      setFeedback({ kind: 'valid', message: 'TICKET VALID — CONFIRM ENTRY' })
     } catch (err) {
       setFeedback({ kind: 'invalid', message: err.message })
     }
@@ -122,7 +112,7 @@ export function useScanner(eventId) {
   // Called with the text from a QR code or a manually typed ticket id
   async function validate(rawValue) {
     const code = String(rawValue || '').trim()
-    if (!code) return
+    if (!code || pendingTicket) return
 
     setScanning(true)
     setFeedback(null)
@@ -134,6 +124,29 @@ export function useScanner(eventId) {
     }
 
     setScanning(false)
+  }
+
+  async function confirmEntry() {
+    if (!pendingTicket) return
+    const { code, ticket } = pendingTicket
+    setScanning(true)
+    try {
+      if (navigator.onLine) {
+        await scanTicket(eventId, code)
+      } else {
+        const queue = readSaved(queueKey(eventId), [])
+        queue.push({ ticketId: ticketIdFromCode(code), scannedAt: new Date().toISOString() })
+        localStorage.setItem(queueKey(eventId), JSON.stringify(queue))
+        setPending(queue.length)
+      }
+      markUsed(ticket.ticket_id || ticket.id)
+      setPendingTicket(null)
+      setFeedback({ kind: 'valid', message: 'ENTRY CONFIRMED: TICKET USED' })
+    } catch (err) {
+      setFeedback({ kind: 'invalid', message: err.message })
+    } finally {
+      setScanning(false)
+    }
   }
 
   // Send scans that were made offline
@@ -168,7 +181,10 @@ export function useScanner(eventId) {
     pending,
     scanning,
     feedback,
+    pendingTicket,
     clearFeedback: () => setFeedback(null),
     validate,
+    confirmEntry,
+    cancelPending: () => setPendingTicket(null),
   }
 }

@@ -109,6 +109,23 @@ export default function ScanPage() {
 
         {scanner.feedback && <FeedbackBanner kind={scanner.feedback.kind} message={scanner.feedback.message} />}
 
+        {scanner.pendingTicket && (
+          <section className="scan-confirmation" aria-live="polite">
+            <div className="scan-confirmation__label">TICKET INFORMATION</div>
+            <div className="scan-confirmation__details">
+              <strong>{scanner.pendingTicket.ticket.type || 'TICKET'}</strong>
+              <span>{scanner.pendingTicket.ticket.event_name || 'EVENT'}</span>
+              {scanner.pendingTicket.ticket.price != null && <span>KES {Number(scanner.pendingTicket.ticket.price).toLocaleString('en-KE')}</span>}
+            </div>
+            <button type="button" className="manual-btn scan-confirmation__confirm" onClick={scanner.confirmEntry} disabled={scanner.scanning}>
+              {scanner.scanning ? 'CONFIRMING…' : 'CONFIRM USED'}
+            </button>
+            <button type="button" className="scan-confirmation__cancel" onClick={scanner.cancelPending} disabled={scanner.scanning}>
+              CANCEL
+            </button>
+          </section>
+        )}
+
         <form className="manual-form" onSubmit={onManualSubmit}>
           <input
             type="text"
@@ -121,7 +138,7 @@ export default function ScanPage() {
             autoCapitalize="characters"
             spellCheck={false}
           />
-          <button type="submit" className="manual-btn" disabled={!manualId.trim() || scanner.scanning}>
+          <button type="submit" className="manual-btn" disabled={!manualId.trim() || scanner.scanning || scanner.pendingTicket}>
             {scanner.scanning ? '…' : 'VALIDATE'}
           </button>
         </form>
