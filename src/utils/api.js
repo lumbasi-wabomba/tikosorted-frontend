@@ -1,7 +1,8 @@
 // All backend calls live in this file. API.md lists what each endpoint expects and returns.
 import { clearToken, getToken } from './auth'
 
-const BASE_URL = '/api'
+const backendUrl = (globalThis.__APP_CONFIG__?.backendUrl || '').replace(/\/$/, '')
+const BASE_URL = `${backendUrl}/api`
 const upper = (value) => String(value).toUpperCase()
 
 async function request(path, { method = 'GET', body, headers, token } = {}) {
@@ -140,7 +141,7 @@ export async function createBooking({ tierId, quantity, phone, email }, idempote
 export function sendMpesaPrompt(bookingId, phone) {
   return request('/payments/mpesa/stk-push', {
     method: 'POST',
-    body: { bookingId, phoneNumber: phone, amount:2345, reference:bookingId},
+    body: { bookingId, phoneNumber: phone, amount:2, reference:bookingId},
   })
 }
 

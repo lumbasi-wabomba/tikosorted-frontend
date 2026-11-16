@@ -9,4 +9,4 @@ RUN npm run build
 FROM nginx:alpine-slim AS production
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["sh", "-c", "printf 'globalThis.__APP_CONFIG__ = { backendUrl: \"%s\" };\\n' \"$(printf '%s' \"${VITE_BACKEND_URL:-}\" | sed 's/\\\\/\\\\\\\\/g; s/\"/\\\\\"/g')\" > /usr/share/nginx/html/config.js && exec nginx -g 'daemon off;'"]

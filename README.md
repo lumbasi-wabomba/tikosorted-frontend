@@ -10,8 +10,10 @@ cp .env.example .env.local   # set VITE_BACKEND_URL to your backend
 npm run dev
 ```
 
-The app calls `/api/...`; the dev server forwards those calls to `VITE_BACKEND_URL`.
-For production, serve the built files (`npm run build`) from the same domain as the API.
+In development, the app calls `/api/...` and the Vite dev server forwards those
+calls to `VITE_BACKEND_URL` (or `http://localhost:3000` by default). In the
+Docker image, `VITE_BACKEND_URL` is read when the Nginx container starts and
+written to `config.js`, so it is not embedded in the Vite bundle.
 
 ## Where things are
 
