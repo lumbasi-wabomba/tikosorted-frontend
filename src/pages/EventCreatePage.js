@@ -47,7 +47,7 @@ export default function EventCreatePage() {
           total: Number(t.quantity),
         })),
       })
-      navigate(`/event/${created.eventId || created.id}`)
+      navigate(`/admin/events/${created.eventId || created.id}/artists`)
     } catch (err) {
       setError(err.message || 'Could not create event')
     }

@@ -90,6 +90,15 @@ export default function EventEditPage() {
 
           {formError && <div className="form-error">{formError}</div>}
           <div className="form-actions">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate(`/admin/events/${eventId}/artists`)}
+            >
+              EDIT / ADD ARTISTS
+            </Button>
+          </div>
+          <div className="form-actions">
             <Button type="button" variant="outline" onClick={() => navigate(`/admin/events/${eventId}`)}>CANCEL</Button>
             <Button type="submit" variant="solid" busy={updateMutation.isPending || stageMutation.isPending}>
               {updateMutation.isPending || stageMutation.isPending ? 'SAVING…' : 'SAVE CHANGES'}

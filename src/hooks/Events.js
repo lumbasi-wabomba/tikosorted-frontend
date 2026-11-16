@@ -1,4 +1,4 @@
-import { addEventCost, changeEventStage, createAdminEvent, getEvent, getEvents, updateAdminEvent, getEventCosts, getEventArtists, updateEventCost } from '../utils/api'
+import { addArtist, addEventCost, changeEventStage, createAdminEvent, getEvent, getEvents, getEventCosts, getEventArtists, updateAdminEvent, updateEventCost } from '../utils/api'
 import { useMutation, useRequest } from './useRequest'
 
 // All public events, soonest first
@@ -40,4 +40,8 @@ export function useAddEventCost() {
 
 export function useEventArtists(eventId) {
   return useRequest(() => (eventId ? getEventArtists(eventId) : Promise.resolve([])), [eventId])
+}
+
+export function useAddArtist() {
+  return useMutation((artist) => addArtist(artist))
 }
