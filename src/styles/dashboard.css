@@ -184,14 +184,20 @@
   text-transform: uppercase;
 }
 .dash-card__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink);
-  border-bottom: 2px solid var(--ink);
-  padding-bottom: 1px;
+  border: 1px solid var(--ink);
+  padding: 4px 8px;
+  white-space: nowrap;
+  text-decoration: none;
 }
 .dash-card__link:hover { color: var(--primary); border-color: var(--primary); }
 
@@ -235,6 +241,14 @@
   letter-spacing: 0.06em;
   color: var(--draft);
   margin-top: 4px;
+}
+.event-list__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: 12px;
+  flex-shrink: 0;
 }
 .event-list__stage {
   font-family: var(--font-mono);
