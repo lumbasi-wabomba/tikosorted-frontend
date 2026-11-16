@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useEvent, useEventCosts, useUpdateEventCost } from '../hooks/Events'
+import { useEvent, useEventCosts, useAddEventCost, useUpdateEventCost } from '../hooks/Events'
 import { fmtDateTime, fmtKES } from '../utils/format'
 import Spinner from '../components/Spinner'
 import Input from '../components/Input'
@@ -18,6 +18,7 @@ export default function CostsPage() {
   const { eventId } = useParams()
   const { data: event, isLoading: loadingEvent } = useEvent(eventId)
   const { data: costs = [], isLoading: loadingCosts } = useEventCosts(eventId)
+  const addMutation = useAddEventCost()
   const updateMutation = useUpdateEventCost()
 
   const [showAdd, setShowAdd] = useState(false)
@@ -41,6 +42,12 @@ export default function CostsPage() {
     return new Date(`${datePart}T${timePart}:00`).toISOString()
   }
 
+  function startAdd() {
+    setEditingCost(null)
+    resetForm()
+    setShowAdd(true)
+  }
+
   async function submit(e) {
     e.preventDefault()
     setError('')
@@ -48,12 +55,18 @@ export default function CostsPage() {
     if (!form.classification) { setError('Please choose a classification.'); return }
     const amount = Number(form.amount)
     if (!form.amount || !amount || amount <= 0) { setError('Enter a valid amount.'); return }
+    const data = {
+      name: form.name.trim(),
+      classification: form.classification,
+      amount,
+      costDate: toISOFromDateInput(form.costDate),
+    }
     try {
-      await updateMutation.mutateAsync({
-        eventId,
-        costId: editingCost?.id ?? null,
-        data: { name: form.name.trim(), classification: form.classification, amount, costDate: toISOFromDateInput(form.costDate) },
-      })
+      if (editingCost) {
+        await updateMutation.mutateAsync({ eventId, costId: editingCost.id, data })
+      } else {
+        await addMutation.mutateAsync({ eventId, data })
+      }
       setShowAdd(false)
       setEditingCost(null)
       resetForm()
@@ -101,7 +114,7 @@ export default function CostsPage() {
             {error && <div className="form-error">{error}</div>}
             <div className="form-actions">
               <Button type="button" variant="outline" onClick={cancel}>CANCEL</Button>
-              <Button type="submit" variant="solid" busy={updateMutation.isPending}>{updateMutation.isPending ? 'SAVING…' : editingCost ? 'UPDATE COST' : 'ADD COST'}</Button>
+              <Button type="submit" variant="solid" busy={addMutation.isPending || updateMutation.isPending}>{addMutation.isPending || updateMutation.isPending ? 'SAVING…' : editingCost ? 'UPDATE COST' : 'ADD COST'}</Button>
             </div>
           </form>
         )}

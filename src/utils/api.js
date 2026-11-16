@@ -296,17 +296,21 @@ const COST_TYPES = {
   ON_GROUND: 'on_ground',
 }
 
+function toCostType(classification) {
+  return COST_TYPES[classification] || classification
+}
+
 export function addEventCost(eventId, { name, classification, amount, costDate }) {
   return request(`/admin/events/${eventId}/costs`, {
     method: 'POST',
-    body: { name, classification: COST_TYPES[classification], amount, costDate },
+    body: { name, classification: toCostType(classification), amount, costDate },
   })
 }
 
 export function updateEventCost(eventId, costId, { name, classification, amount, costDate }) {
   return request(`/admin/events/${eventId}/costs/${costId}`, {
     method: 'PATCH',
-    body: { name, classification: COST_TYPES[classification], amount, costDate },
+    body: { name, classification: toCostType(classification), amount, costDate },
   })
 }
 
