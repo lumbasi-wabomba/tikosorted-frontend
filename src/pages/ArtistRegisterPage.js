@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useRequest } from '../hooks/useRequest'
+import { useArtistVerification } from '../hooks/ArtistVerification'
 import { useRegisterEntourage, useSaveProfile } from '../hooks/Registration'
-import { verifyArtist } from '../utils/api'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import Spinner from '../components/Spinner'
@@ -17,7 +16,7 @@ export default function RegisterPage() {
   const navigate = useNavigate()
 
   // Opening the link verifies the artist and gives us a short-lived token for the saves below
-  const { data: session, isLoading, isError, error } = useRequest(() => verifyArtist(linkToken), [linkToken])
+  const { data: session, isLoading, isError, error } = useArtistVerification(linkToken)
 
   const [preferences, setPreferences] = useState('')
   const [member, setMember] = useState(EMPTY_MEMBER)

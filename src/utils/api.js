@@ -140,7 +140,7 @@ export async function createBooking({ tierId, quantity, phone, email }, idempote
 export function sendMpesaPrompt(bookingId, phone) {
   return request('/payments/mpesa/stk-push', {
     method: 'POST',
-    body: { bookingId, phone },
+    body: { bookingId, phoneNumber: phone, amount:2345, reference:bookingId},
   })
 }
 
@@ -172,7 +172,7 @@ export function addArtist({ eventId, name, email }) {
 
 // artist - verify the link token and save the profile
 export function verifyArtist(linkToken) {
-  return request(`/artists/verify/${linkToken}`, { method: 'POST' })
+  return request(`/artists/verify/${encodeURIComponent(linkToken)}`, { method: 'POST' })
 }
 
 export function saveArtistProfile(artistToken, preferences) {
