@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useEventList, useEventReport } from '../hooks/EventReport'
 import { endSession } from '../utils/api'
 import { fmtAmount } from '../utils/format'
@@ -108,6 +108,9 @@ export default function ReportPage() {
             <h2 className="panel-title">Budget Breakdown</h2>
             <span className="panel-sub">COST CLASSIFICATION</span>
           </header>
+          <div className="manage-costs">
+            <Link to={`/admin/events/${eventId}/costs`}>Manage Costs →</Link>
+          </div>
 
           {costs.isLoading ? (
             <Spinner label="LOADING COSTS…" />

@@ -302,3 +302,14 @@ export function addEventCost(eventId, { name, classification, amount, costDate }
     body: { name, classification: COST_TYPES[classification], amount, costDate },
   })
 }
+
+export function updateEventCost(eventId, costId, { name, classification, amount, costDate }) {
+  return request(`/admin/events/${eventId}/costs/${costId}`, {
+    method: 'PATCH',
+    body: { name, classification: COST_TYPES[classification], amount, costDate },
+  })
+}
+
+export function getEventArtists(eventId) {
+  return request(`/artists?eventId=${eventId}`)
+}

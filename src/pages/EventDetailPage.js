@@ -1,12 +1,50 @@
 import { useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
-import { useEvent } from '../hooks/Events'
+import { useEvent, useEventArtists } from '../hooks/Events'
 import { fmtDateTime, fmtKES } from '../utils/format'
 import Spinner from '../components/Spinner'
 import TierRow from '../components/TierRow'
 
 const MAX_PER_ORDER = 10 // the backend allows 1 to 10 tickets per booking
 
+
+function ArtistsModule({ eventId }) {
+  const { data: artists = [], isLoading, isError, error } = useEventArtists(eventId)
+
+  if (isLoading) {
+    return (
+      <div className="panel-header">
+        <div className="title">ARTISTS & ENSEMBLE</div>
+        <div className="sub">Loading…</div>
+      </div>
+    )
+  }
+
+  if (isError || !artists.length) {
+    return null
+  }
+
+  return (
+    <section className="artists-module">
+      <div className="panel-header">
+        <div className="title">ARTISTS & ENSEMBLE</div>
+        <div className="sub">Staff-only · verified performers</div>
+      </div>
+      <div className="artists-stack">
+        {artists.map((artist) => (
+          <div className="artist-card" key={artist.id}>
+            <div className="artist-card__name">{artist.name}</div>
+            <div className="artist-card__entourage">
+              {artist.entourage.map((member) => (
+                <span key={member.id} className="artist-card__member">{member.name}</span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
 export default function EventDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -123,6 +161,8 @@ export default function EventDetailPage() {
             </button>
           </section>
         </div>
+
+        <ArtistsModule eventId={event.id} />
       </div>
     </main>
   )
