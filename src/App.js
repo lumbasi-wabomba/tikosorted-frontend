@@ -16,7 +16,9 @@ import TaskDetailPage from './pages/TaskDetailPage'
 import TaskEditPage from './pages/TaskEditPage'
 import EventCreatePage from './pages/EventCreatePage'
 import EventEditPage from './pages/EventEditPage'
+import EventArtistsPage from './pages/EventArtistsPage'
 import CostsPage from './pages/CostsPage'
+import EntourageVerifyPage from './pages/EntourageVerifyPage'
 
 function RegisterSuccess() {
   return (
@@ -40,6 +42,7 @@ export default function App() {
       <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/ticket/:bookingId" element={<TicketPage />} />
       <Route path="/artist/verify/:token" element={<RegisterPage />} />
+      <Route path="/entourage/verify/:token" element={<EntourageVerifyPage />} />
       <Route path="/register/success" element={<RegisterSuccess />} />
       <Route path="/admin/login" element={<LoginPage />} />
 
@@ -54,6 +57,7 @@ export default function App() {
         <Route path="/admin/tasks/:id" element={<TaskDetailPage />} />
         <Route path="/admin/tasks/:id/edit" element={<TaskEditPage />} />
         <Route path="/admin/events/edit/:eventId" element={<EventEditPage />} />
+        <Route path="/admin/events/:eventId/artists" element={<EventArtistsPage />} />
         <Route path="/admin/events/:eventId/costs" element={<CostsPage />} />
         <Route path="/admin/report" element={<ReportPage />} />
         <Route path="/admin/audit" element={<AuditPage />} />

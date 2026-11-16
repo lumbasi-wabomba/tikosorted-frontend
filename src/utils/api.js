@@ -192,6 +192,13 @@ export function addEntourage(artistToken, members) {
   })
 }
 
+export function verifyEntourage(token, artistId) {
+  return request(
+    `/artists/entourage/verify/${encodeURIComponent(token)}?artistId=${encodeURIComponent(artistId)}`,
+    { method: 'POST' }
+  )
+}
+
 // gate scanner - get the manifest of tickets for this event. The manifest is cached in localStorage so the scanner can work offline.
 export async function getManifest(eventId) {
   const rows = await request(`/checkin/manifest/${eventId}`)
