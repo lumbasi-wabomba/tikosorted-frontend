@@ -4,6 +4,7 @@ import { useTask as useTaskDetail, useUpdateTask } from '../hooks/Tasks'
 import Spinner from '../components/Spinner'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import AdminDashboardLink from '../components/AdminDashboardLink'
 
 // Only DB-storable statuses (the backend tasks table allows
 // todo / in_progress / done).
@@ -58,6 +59,7 @@ export default function TaskEditPage() {
         <header className="form-header">
           <h1 className="form-header__title">EDIT TASK</h1>
           <div className="form-header__meta">{task.task || task.title}</div>
+          <AdminDashboardLink />
         </header>
 
         <form className="form-body" onSubmit={submit} noValidate>

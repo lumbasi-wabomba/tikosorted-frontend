@@ -5,6 +5,7 @@ import { fmtDateTime, fmtKES } from '../utils/format'
 import Spinner from '../components/Spinner'
 import Input from '../components/Input'
 import Button from '../components/Button'
+import AdminDashboardLink from '../components/AdminDashboardLink'
 import '../styles/form.css'
 
 const CLASSIFICATIONS = [
@@ -88,6 +89,7 @@ export default function CostsPage() {
         <header className="form-header">
           <h1 className="form-header__title">EVENT COSTS</h1>
           <div className="form-header__meta">{loadingEvent ? 'LOADING…' : event?.name?.toUpperCase()}</div>
+          <AdminDashboardLink />
         </header>
 
         {showAdd && (

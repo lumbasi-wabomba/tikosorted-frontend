@@ -4,6 +4,7 @@ import { useTasks } from '../hooks/Tasks'
 import { endSession } from '../utils/api'
 import { fmtDate } from '../utils/format'
 import Spinner from '../components/Spinner'
+import AdminDashboardLink from '../components/AdminDashboardLink'
 import '../styles/tasks.css'
 
 // Colour of the dot next to each status
@@ -39,6 +40,7 @@ export default function TasksPage() {
           <span className="tasks-title">TASK TRACKER</span>
         </div>
         <div className="tasks-header__right">
+          <AdminDashboardLink />
           <button className="logout-btn" onClick={logout}>LOGOUT</button>
         </div>
       </header>

@@ -5,6 +5,7 @@ import { fmtDate } from '../utils/format'
 import Spinner from '../components/Spinner'
 import Button from '../components/Button'
 import Badge from '../components/Badge'
+import AdminDashboardLink from '../components/AdminDashboardLink'
 
 const STATUSES = ['TODO', 'IN_PROGRESS', 'COMPLETED']
 const STATUS_KIND = { TODO: 'draft', IN_PROGRESS: 'held', BLOCKED: 'critical', COMPLETED: 'paid' }
@@ -62,6 +63,7 @@ export default function TaskDetailPage() {
           <div className="form-header__meta">
             <Badge kind={STATUS_KIND[status] || 'draft'}>{status.replace('_', ' ')}</Badge>
           </div>
+          <AdminDashboardLink />
         </header>
 
         <div className="form-toolbar">

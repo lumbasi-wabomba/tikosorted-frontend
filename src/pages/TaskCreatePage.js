@@ -5,6 +5,7 @@ import { getAdminEvents, getManagementTeam } from '../utils/api'
 import { useRequest } from '../hooks/useRequest'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import AdminDashboardLink from '../components/AdminDashboardLink'
 import '../styles/form.css'
 
 export default function TaskCreatePage() {
@@ -42,6 +43,7 @@ export default function TaskCreatePage() {
         <header className="form-header">
           <h1 className="form-header__title">NEW TASK</h1>
           <div className="form-header__meta">ADMIN · COORDINATOR</div>
+          <AdminDashboardLink />
         </header>
 
         <form className="form-body" onSubmit={submit} noValidate>

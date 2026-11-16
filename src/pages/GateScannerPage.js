@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useScanner } from '../hooks/Scanner'
 import MetricCell from '../components/MetricCell'
 import FeedbackBanner from '../components/FeedbackBanner'
+import AdminDashboardLink from '../components/AdminDashboardLink'
 import '../styles/scan.css'
 
 const pad = (number, length) => String(number).padStart(length, '0')
@@ -76,6 +77,7 @@ export default function ScanPage() {
     <div className="scan-shell">
       <header className="scan-header">
         <span className="scan-title">TIKOSORTED GATE MANAGER</span>
+        <AdminDashboardLink />
         <span className={`sync-badge ${scanner.online ? 'sync-badge--ok' : 'sync-badge--warn'}`}>
           {scanner.online ? 'ONLINE' : 'OFFLINE · SCANS WILL SYNC LATER'}
         </span>

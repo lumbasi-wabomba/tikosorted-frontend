@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useEventCreate } from '../hooks/Events'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import AdminDashboardLink from '../components/AdminDashboardLink'
 
 const EMPTY_TIER = { type: 'REGULAR', name: 'Regular', price: '', quantity: '' }
 const TIERS = ['EARLY_BIRD', 'REGULAR', 'VIP', 'VVIP']
@@ -58,6 +59,7 @@ export default function EventCreatePage() {
         <header className="form-header">
           <h1 className="form-header__title">CREATE EVENT</h1>
           <div className="form-header__meta">COORDINATOR · DRAFT</div>
+          <AdminDashboardLink />
         </header>
 
         <form className="form-body" onSubmit={submit} noValidate>

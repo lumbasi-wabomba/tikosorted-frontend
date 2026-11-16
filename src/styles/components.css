@@ -669,3 +669,23 @@
 .checkout-status { padding: 12px 14px; border: 2px solid var(--ink); color: var(--ink); font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; }
 .checkout-status--error { border-color: var(--critical); color: var(--critical); }
 .checkout-status--success { border-color: var(--paid); color: var(--paid); }
+.admin-dashboard-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border: 1px solid currentColor;
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.admin-dashboard-link:hover {
+  background: var(--surface);
+  color: var(--ink);
+}

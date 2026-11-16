@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuditLogs } from '../hooks/AuditLogs'
 import { fmtLogTime } from '../utils/format'
 import Spinner from '../components/Spinner'
+import AdminDashboardLink from '../components/AdminDashboardLink'
 import '../styles/audit.css'
 
 export default function AuditPage() {
@@ -40,6 +41,7 @@ export default function AuditPage() {
             aria-label="Search audit logs"
           />
         </div>
+        <AdminDashboardLink />
       </header>
 
       <div className="audit-body">

@@ -7,6 +7,7 @@ import BarChart from '../components/BarChart'
 import DonutChart from '../components/DonutChart'
 import NumberBox from '../components/NumberBox'
 import Spinner from '../components/Spinner'
+import AdminDashboardLink from '../components/AdminDashboardLink'
 import '../styles/report.css'
 
 // Chart labels and colours (the order here is the order on screen)
@@ -79,6 +80,7 @@ export default function ReportPage() {
         </div>
 
         <div className="report-bar__right">
+          <AdminDashboardLink />
           <button className="logout-btn" onClick={logout}>LOGOUT</button>
         </div>
       </header>

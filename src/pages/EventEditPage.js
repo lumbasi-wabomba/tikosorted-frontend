@@ -4,6 +4,7 @@ import { useEvent, useEventUpdate, useEventStage } from '../hooks/Events'
 import Spinner from '../components/Spinner'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import AdminDashboardLink from '../components/AdminDashboardLink'
 import '../styles/form.css'
 
 const NEXT_STAGES = {
@@ -73,6 +74,7 @@ export default function EventEditPage() {
         <header className="form-header">
           <h1 className="form-header__title">EDIT EVENT</h1>
           <div className="form-header__meta">{event.eventStage.replace('_', ' ')}</div>
+          <AdminDashboardLink />
         </header>
         <form className="form-body" onSubmit={submit} noValidate>
           <Input label="EVENT NAME" id="name" value={form.name} onChange={e => setField('name', e.target.value)} required />
