@@ -42,6 +42,20 @@ export function logout() {
   return request('/auth/logout', { method: 'POST' })
 }
 
+export function requestPasswordReset(email) {
+  return request('/auth/forgot-password', {
+    method: 'POST',
+    body: { email },
+  })
+}
+
+export function resetPassword(token, password) {
+  return request(`/auth/reset-password/${encodeURIComponent(token)}`, {
+    method: 'POST',
+    body: { password },
+  })
+}
+
 // Manager only. role: manager | coordinator | finance | logistics | production |
 // marketing | hospitality | compliance | gate_staff     -> { userId }
 export function createStaff({ name, staffId, email, role, password }) {

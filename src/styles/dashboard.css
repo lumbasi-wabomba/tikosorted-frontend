@@ -9,6 +9,47 @@
   flex-direction: column;
 }
 
+.dash-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding: 14px var(--space-3);
+  background: var(--surface);
+  border: 2px solid var(--ink);
+  font-family: var(--font-mono);
+}
+
+.dash-footer > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dash-footer__label {
+  color: var(--draft);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dash-footer__action {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 2px solid var(--ink);
+  padding: 10px 14px;
+  background: var(--primary);
+  color: var(--surface);
+}
+
+.dash-footer__action:hover {
+  background: var(--ink);
+}
+
 /* ─── TOP NAV ─── */
 .dash-nav {
   display: flex;

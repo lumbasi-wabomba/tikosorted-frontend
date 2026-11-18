@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { login } from '../utils/api'
-import { setToken } from '../utils/auth'
+import { setRole, setToken } from '../utils/auth'
 import Button from '../components/Button'
 import Input from '../components/Input'
 
@@ -18,8 +19,9 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const { token } = await login(email, password)
+      const { token, role } = await login(email, password)
       setToken(token)
+      setRole(role)
       navigate('/admin')
     } catch (err) {
       setError(err.message)
@@ -38,6 +40,9 @@ export default function LoginPage() {
           <Button type="submit" busy={busy}>
             {busy ? 'AUTHENTICATING…' : 'LOGIN'}
           </Button>
+          <Link to="/admin/forgot-password" className="login-forgot-link">
+            FORGOT PASSWORD?
+          </Link>
         </div>
       </form>
     </div>

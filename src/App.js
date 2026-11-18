@@ -19,6 +19,10 @@ import EventEditPage from './pages/EventEditPage'
 import EventArtistsPage from './pages/EventArtistsPage'
 import CostsPage from './pages/CostsPage'
 import EntourageVerifyPage from './pages/EntourageVerifyPage'
+import ManagementUserCreatePage from './pages/ManagementUserCreatePage'
+import ManagerProtectedRoute from './components/ManagerProtectedRoute'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
 
 function RegisterSuccess() {
   return (
@@ -45,6 +49,8 @@ export default function App() {
       <Route path="/entourage/verify/:token" element={<EntourageVerifyPage />} />
       <Route path="/register/success" element={<RegisterSuccess />} />
       <Route path="/admin/login" element={<LoginPage />} />
+      <Route path="/admin/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/admin/reset-password/:token" element={<ResetPasswordPage />} />
 
       {/* Staff only (login required) */}
       <Route element={<ProtectedRoute />}>
@@ -61,6 +67,9 @@ export default function App() {
         <Route path="/admin/events/:eventId/costs" element={<CostsPage />} />
         <Route path="/admin/report" element={<ReportPage />} />
         <Route path="/admin/audit" element={<AuditPage />} />
+        <Route element={<ManagerProtectedRoute />}>
+          <Route path="/admin/users/create" element={<ManagementUserCreatePage />} />
+        </Route>
       </Route>
     </Routes>
   )

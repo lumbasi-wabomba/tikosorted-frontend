@@ -3,10 +3,12 @@ import { useDashboard } from '../hooks/Dashboard'
 import { endSession } from '../utils/api'
 import { fmtAmount, fmtDateTime, fmtTime } from '../utils/format'
 import Spinner from '../components/Spinner'
+import { getRole } from '../utils/auth'
 import '../styles/dashboard.css'
 
 export default function DashboardPage() {
   const navigate = useNavigate()
+  const isManager = getRole() === 'manager'
   const { data, isLoading, isError, error } = useDashboard()
 
   async function logout() {
@@ -136,9 +138,26 @@ export default function DashboardPage() {
                     <span className="action-btn__icon">⌕</span>
                     <span>AUDIT LOG</span>
                   </Link>
+                  {isManager && (
+                    <Link to="/admin/users/create" className="action-btn">
+                      <span className="action-btn__icon">+</span>
+                      <span>ADD MANAGEMENT USER</span>
+                    </Link>
+                  )}
                 </div>
               </section>
             </div>
+            {isManager && (
+              <footer className="dash-footer">
+                <div>
+                  <span className="dash-footer__label">MANAGER SETTINGS</span>
+                  <strong>Management users</strong>
+                </div>
+                <Link to="/admin/users/create" className="dash-footer__action">
+                  + ADD MANAGEMENT USER
+                </Link>
+              </footer>
+            )}
           </>
         )}
       </main>
