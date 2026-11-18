@@ -28,6 +28,7 @@ export default function CheckoutPage() {
 
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
+  const [amount, setAmount] = useState('')
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState({ kind: '', message: '' })
 
@@ -114,12 +115,12 @@ export default function CheckoutPage() {
       }
 
       setStatus({ kind: '', message: 'SENDING M-PESA PROMPT…' })
-      await sendMpesaPrompt(heldBooking.id, mpesaPhone)
+      await sendMpesaPrompt(heldBooking.id, mpesaPhone, total)
 
       setStatus({ kind: '', message: 'AWAITING PAYMENT…' })
       await waitForPayment(heldBooking)
 
-      setStatus({ kind: 'success', message: 'PAID ✓ REDIRECTING…' })
+      setStatus({ kind: 'success', message: 'PAID REDIRECTING…' })
       navigate(`/ticket/${heldBooking.id}`)
     } catch (err) {
       setStatus({ kind: 'error', message: err.message })

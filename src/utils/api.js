@@ -138,10 +138,10 @@ export async function createBooking({ tierId, quantity, phone, email }, idempote
 }
 
 // phone: 2547XXXXXXXX
-export function sendMpesaPrompt(bookingId, phone) {
+export function sendMpesaPrompt(bookingId, phone, amount) {
   return request('/payments/mpesa/stk-push', {
     method: 'POST',
-    body: { bookingId, phoneNumber: phone, amount:2, reference:bookingId},
+    body: { bookingId, phoneNumber: phone, amount:amount, reference:bookingId},
   })
 }
 
@@ -294,6 +294,10 @@ export function getEventMetrics(eventId) {
 
 export function getEventCosts(eventId) {
   return request(`/admin/events/${eventId}/costs`)
+}
+
+export function emailEventReport(eventId) {
+  return request(`/admin/events/${eventId}/report/email`, { method: 'POST' })
 }
 
 // Cost types for events.

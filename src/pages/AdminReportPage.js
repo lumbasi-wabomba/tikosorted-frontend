@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useEventList, useEventReport } from '../hooks/EventReport'
-import { endSession } from '../utils/api'
+import { emailEventReport, endSession } from '../utils/api'
 import { fmtAmount } from '../utils/format'
 import BarChart from '../components/BarChart'
 import DonutChart from '../components/DonutChart'
@@ -29,6 +29,8 @@ const COSTS = [
 export default function ReportPage() {
   const navigate = useNavigate()
   const [selectedId, setSelectedId] = useState('')
+  const [emailStatus, setEmailStatus] = useState({ type: '', message: '' })
+  const [isSendingEmail, setIsSendingEmail] = useState(false)
 
   const { data: events = [], isLoading: loadingEvents } = useEventList()
 
@@ -56,6 +58,21 @@ export default function ReportPage() {
     navigate('/admin/login')
   }
 
+  async function sendReportEmail() {
+    if (!eventId || isSendingEmail) return
+
+    setEmailStatus({ type: '', message: '' })
+    setIsSendingEmail(true)
+    try {
+      const result = await emailEventReport(eventId)
+      setEmailStatus({ type: 'success', message: result.message })
+    } catch (err) {
+      setEmailStatus({ type: 'error', message: err.message })
+    } finally {
+      setIsSendingEmail(false)
+    }
+  }
+
   return (
     <div className="report-shell">
       <header className="report-bar">
@@ -81,9 +98,22 @@ export default function ReportPage() {
 
         <div className="report-bar__right">
           <AdminDashboardLink />
+          <button
+            className="email-report-btn"
+            type="button"
+            onClick={sendReportEmail}
+            disabled={!eventId || isSendingEmail}
+          >
+            {isSendingEmail ? 'SENDING…' : 'EMAIL REPORT'}
+          </button>
           <button className="logout-btn" onClick={logout}>LOGOUT</button>
         </div>
       </header>
+      {emailStatus.message && (
+        <div className={`report-status report-status--${emailStatus.type}`} role="status" aria-live="polite">
+          {emailStatus.message}
+        </div>
+      )}
 
       <main className="report-main">
         <section className="report-panel">
